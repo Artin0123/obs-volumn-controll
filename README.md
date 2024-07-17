@@ -19,8 +19,19 @@ But... it still has advantages!
 
 ## Variables
 
- - **G.tick**: how often script update (default = 0.3 seconds)  
- - **G.source_name**: audio source name (default = 擷取音訊輸出)  
- - **G.mouth_image_source_name**: image source name to toggle visibility (default = mouth)  
- - **G.scene_Name**: The name of the scene where the image source is located (default = Walling)  
- - **G.threshold**: dB value to toggle visibility (default = -30.0 dB)  
+```
+# how often script update (seconds)  
+G.tick = 300
+
+# audio source name  
+G.source_name = "擷取音訊輸出"
+
+# image source name to toggle visibility  
+G.mouth_image_source_name = "mouth"
+
+# The name of the scene where the image source is located  
+G.scene_Name = "Walling"
+
+# G.threshold: dB value to toggle visibility  
+G.threshold = -30.0  
+```
