@@ -85,7 +85,7 @@ G.volmeter = "not yet initialized volmeter instance"
 G.vt_source_name = "vtuber"
 G.mouth_image_source_name = "mouth"
 G.scene_Name = "Julti"
-G.threshold = -35.0
+G.threshold = -30.0
 
 
 def setVisibility(sceneName, sourceName, visible, doPrint=False):
@@ -174,8 +174,13 @@ def update_jump_animation():
 
         # 檢查是否需要切換到下降階段
         if G.animation_step >= G.animation_total_steps:
-            G.animation_phase = "down"
+            G.animation_phase = "wait"  # 改為等待階段
             G.animation_step = 0
+    elif G.animation_phase == "wait":
+        # 等待階段 - 檢查音量是否低於閾值
+        if G.noise < G.threshold:
+            # 音量低於閾值，開始下降
+            G.animation_phase = "down"
     else:
         # 下降階段
         vt_pos = getPosition(G.scene_Name, G.vt_source_name)
@@ -239,8 +244,11 @@ def event_loop():
             if G.animation_timer <= 0:
                 # 執行動畫的下一步
                 update_jump_animation()
-                # 重置計時器
-                G.animation_timer = G.animation_step_interval
+                # 重置計時器，如果是等待階段則不延遲，立即檢查下一幀
+                if G.animation_phase == "wait":
+                    G.animation_timer = 0  # 等待階段持續檢查音量
+                else:
+                    G.animation_timer = G.animation_step_interval
     else:
         G.duration += G.tick_mili
 
