@@ -75,6 +75,7 @@ G.animation_step = 0  # 動畫步驟計數
 G.animation_total_steps = 10  # 每個階段的步驟總數 (10步)
 G.animation_step_distance = 1  # 每步移動的像素數 (1px)
 G.animation_step_interval = 50  # 每步的間隔 (50毫秒，即0.05秒)
+G.current_velocity = 0  # 當前移動速度（用於模擬重力）
 G.start_delay = 3
 G.duration = 0
 G.noise = -60.0
@@ -144,6 +145,9 @@ def animate_jump():
     G.animation_phase = "up"
     G.animation_step = 0
 
+    # 設定速度初始值 (用於模擬重力效果)
+    G.current_velocity = G.animation_step_distance * 2  # 開始時速度較快
+
     # 設定嘴巴可見
     setVisibility(G.scene_Name, G.mouth_image_source_name, True)
 
@@ -155,18 +159,22 @@ def update_jump_animation():
         vt_pos = getPosition(G.scene_Name, G.vt_source_name)
         mouth_pos = getPosition(G.scene_Name, G.mouth_image_source_name)
 
-        # 向上移動1px
+        # 隨著上升，速度逐漸減小（模擬重力減速）
+        move_distance = max(0.5, G.current_velocity)  # 最小移動0.5像素，確保有移動
+        G.current_velocity -= 0.2  # 每次速度減少0.2
+
+        # 向上移動
         setPosition(
             G.scene_Name,
             G.vt_source_name,
             vt_pos[0],
-            vt_pos[1] - G.animation_step_distance,
+            vt_pos[1] - move_distance,
         )
         setPosition(
             G.scene_Name,
             G.mouth_image_source_name,
             mouth_pos[0],
-            mouth_pos[1] - G.animation_step_distance,
+            mouth_pos[1] - move_distance,
         )
 
         # 更新步驟計數
@@ -176,6 +184,8 @@ def update_jump_animation():
         if G.animation_step >= G.animation_total_steps:
             G.animation_phase = "wait"  # 改為等待階段
             G.animation_step = 0
+            G.current_velocity = 0.5  # 下降開始時速度較慢
+            
     elif G.animation_phase == "wait":
         # 等待階段 - 檢查音量是否低於閾值
         if G.noise < G.threshold:
@@ -186,18 +196,22 @@ def update_jump_animation():
         vt_pos = getPosition(G.scene_Name, G.vt_source_name)
         mouth_pos = getPosition(G.scene_Name, G.mouth_image_source_name)
 
-        # 向下移動1px
+        # 隨著下降，速度逐漸增加（模擬重力加速）
+        G.current_velocity += 0.25  # 每次速度增加0.25
+        move_distance = G.current_velocity
+        
+        # 向下移動
         setPosition(
             G.scene_Name,
             G.vt_source_name,
             vt_pos[0],
-            vt_pos[1] + G.animation_step_distance,
+            vt_pos[1] + move_distance,
         )
         setPosition(
             G.scene_Name,
             G.mouth_image_source_name,
             mouth_pos[0],
-            mouth_pos[1] + G.animation_step_distance,
+            mouth_pos[1] + move_distance,
         )
 
         # 更新步驟計數
@@ -205,6 +219,21 @@ def update_jump_animation():
 
         # 檢查是否動畫已完成
         if G.animation_step >= G.animation_total_steps:
+            # 動畫完成時，將角色位置重設回原始位置
+            setPosition(
+                G.scene_Name,
+                G.vt_source_name,
+                G.original_vt_pos[0],
+                G.original_vt_pos[1]
+            )
+            setPosition(
+                G.scene_Name,
+                G.mouth_image_source_name,
+                G.original_mouth_pos[0],
+                G.original_mouth_pos[1]
+            )
+            
+            # 重設動畫狀態
             G.animation_lock = False
             G.animation_phase = "up"
             G.animation_step = 0
